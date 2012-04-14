@@ -1,4 +1,10 @@
 
+# the username and password to logon to the Mikrotik network
 export MIKROTIK_USERNAME=myusername
 export MIKROTIK_PASSWORD=mypassword
+
+# the network SSID (or ESSID) - ie the network name
 export MIKROTIK_SSID=myssid
+
+# the network interface that connects to the network
+export MIKROTIK_IFACE=wlan0

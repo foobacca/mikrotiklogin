@@ -15,10 +15,9 @@ IFACE="$1"
 source /etc/mikrotiklogindetails.sh
 
 if [ $2 == 'up' ]; then
-  if [ $IFACE == 'wlan0' ]; then
+  if [ $IFACE == $MIKROTIK_IFACE ]; then
     # check what IP and ssid we have
     # try and autologin to Mikrotik network
-    #IMPALA_WIFI=$(arp -n | grep '192.168.0.2' | grep '00:1f:29:65:54:5a' | wc -l)
     MIKTOTIK_WIFI=$(iwconfig 2>/dev/null | egrep "$MIKROTIK_SSID" | wc -l)
     if [ $MIKTOTIK_WIFI == '1' ]; then
       GATEWAY=$(route -n | grep UG | awk '{print $2}')
@@ -39,7 +38,7 @@ EOS
 `
       #echo $SALT
       #echo $MANGLE_PASSWORD
-      # post login details
+      # post login details and show any error message (the grep)
       curl -d username=$MIKROTIK_USERNAME -d password=$MANGLE_PASSWORD \
         http://${GATEWAY}/login 2>/dev/null \
         | grep FF8080
