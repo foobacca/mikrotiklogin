@@ -16,7 +16,7 @@ online without having to do anything.
 
 To test the script you can run:
 
-  bash -x /etc/NetworkManager/dispatcher.d/mikrotiklogin wlan0 up
+    bash -x /etc/NetworkManager/dispatcher.d/mikrotiklogin wlan0 up
 
 which will show you the commands being run so you can see if they are what
 you expect.
