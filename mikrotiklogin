@@ -1,0 +1,49 @@
+#!/bin/bash -e
+# Script to dispatch NetworkManager events
+#
+# Runs ifupdown scripts when NetworkManager fiddles with interfaces.
+# See NetworkManager(8) for further documentation of the dispatcher events.
+
+if [ -z "$1" ]; then
+    echo "$0: called with no interface" 1>&2
+    exit 1;
+fi
+
+# Fake ifupdown environment
+IFACE="$1"
+
+source /etc/mikrotiklogindetails.sh
+
+if [ $2 == 'up' ]; then
+  if [ $IFACE == 'wlan0' ]; then
+    # check what IP and ssid we have
+    # try and autologin to Mikrotik network
+    #IMPALA_WIFI=$(arp -n | grep '192.168.0.2' | grep '00:1f:29:65:54:5a' | wc -l)
+    MIKTOTIK_WIFI=$(iwconfig 2>/dev/null | egrep "$MIKROTIK_SSID" | wc -l)
+    if [ $MIKTOTIK_WIFI == '1' ]; then
+      GATEWAY=$(route -n | grep UG | awk '{print $2}')
+      # get form and extract password salt
+      SALT=$(curl http://$GATEWAY/login 2>/dev/null | grep hexMD5 | cut -d\' -f 2,4)
+      # the below converts the salt from '\123\098' ... to an actual hex string
+      # and then hashes with the password
+      export SALT
+MANGLE_PASSWORD=`python << EOS
+import os, hashlib
+salt = os.environ['SALT']
+salt1,salt2 = salt.split("'")
+salt1 = ''.join(map(lambda x: chr(int(x,8)), salt1.split('\\\\\\\\')[1:]))
+salt2 = ''.join(map(lambda x: chr(int(x,8)), salt2.split('\\\\\\\\')[1:]))
+s = salt1 + os.environ['MIKROTIK_PASSWORD'] + salt2
+print hashlib.md5(s).hexdigest()
+EOS
+`
+      #echo $SALT
+      #echo $MANGLE_PASSWORD
+      # post login details
+      curl -d username=$MIKROTIK_USERNAME -d password=$MANGLE_PASSWORD \
+        http://${GATEWAY}/login 2>/dev/null \
+        | grep FF8080
+    fi
+  fi
+fi
+

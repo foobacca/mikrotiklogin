@@ -1,0 +1,4 @@
+
+export MIKROTIK_USERNAME=myusername
+export MIKROTIK_PASSWORD=mypassword
+export MIKROTIK_SSID=myssid
