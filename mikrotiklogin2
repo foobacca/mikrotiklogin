@@ -52,16 +52,14 @@ if len(sys.argv) < 2:
 # Fake ifupdown environment
 interface = sys.argv[1]
 
-import mikrotiklogindetails
+from mikrotiklogindetails import mikrotik_ssids, mikrotik_username, mikrotik_password, mikrotik_interface
 
-if sys.argv[2] == 'up':
-    if interface == mikrotiklogindetails.interface:
-        # check what IP and ssid we have
-        # try and autologin to Mikrotik network
-        ssid = get_ssid()
-        ssids = ['something', 'next']
-        if ssid in ssids:
-            gw = get_gateway()
-            salt1, salt2 = get_mikrotik_salt(gw)
-            salted_pw = salt_password(salt1, salt2, mikrotik_password)
-            post_login_form(gw, mikrotik_username, salted_pw)
+if sys.argv[2] == 'up' and interface == mikrotik_interface:
+    # check what IP and ssid we have
+    # try and autologin to Mikrotik network
+    ssid = get_ssid()
+    if ssid in mikrotik_ssids:
+        gw = get_gateway()
+        salt1, salt2 = get_mikrotik_salt(gw)
+        salted_pw = salt_password(salt1, salt2, mikrotik_password)
+        post_login_form(gw, mikrotik_username, salted_pw)

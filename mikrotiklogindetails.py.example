@@ -5,4 +5,4 @@ mikrotik_username = 'myusername'
 mikrotik_password = 'mypassword'
 
 # the network SSID (or ESSID) - ie the network name
-mikrotik_ssid = ['myssid']
+mikrotik_ssids = ['myssid']
