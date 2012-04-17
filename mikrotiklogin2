@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+# Script to dispatch NetworkManager events
+#
+# Runs ifupdown scripts when NetworkManager fiddles with interfaces.
+# See NetworkManager(8) for further documentation of the dispatcher events.
+
+import sys
+import hashlib
+import re
+import subprocess
+import urllib2
+
+def get_ssid():
+    ssidpat = re.compile('ESSID:"([^"]*)"')
+    iwconf = subprocess.check_output(['iwconfig'])
+    ssidmatch = ssidpat.search(iwconf)
+    if ssidmatch:
+        return ssidmatch.groups()[0]
+
+def get_gateway():
+    route = subprocess.check_output(['ip', 'route'])
+    default_route = route.split('\n')[0]
+    default_gw = default_route.split(' ')[2]
+    return default_gw
+
+def get_mikrotik_salt(gateway):
+    # get form and extract password salt
+    response = urllib2.urlopen('http://' + gateway + '/login')
+    html_lines = response.read().split('\n')
+    salt_line = filter((lambda x: 'hexMD5' in x), html_lines)[0]
+    salt_bits = salt_line.split("'")
+    salt1 = ''.join(map(lambda x: chr(int(x,8)), salt_bits[1].split('\\')[1:]))
+    salt2 = ''.join(map(lambda x: chr(int(x,8)), salt_bits[3].split('\\')[1:]))
+    return salt1, salt2
+
+def salt_password(salt1, salt2, password):
+    s1pws2 = salt1 + password + salt2
+    return hashlib.md5(s1pws2).hexdigest()
+
+def post_login_form(gateway, user, salt_password):
+    post_data = urllib2.urlencode({'username': user, 'password': salt_password})
+    response = urllib2.urlopen('http://' + gateway + '/login', post_data)
+    response_lines = response.split('\n')
+    salt_line = filter((lambda x: 'FF8080' in x), response_lines)
+    if salt_line:
+        print salt_line
+
+
+if len(sys.argv) < 2:
+    sys.exit(sys.argv[0] + ": called with no interface")
+
+# Fake ifupdown environment
+interface = sys.argv[1]
+
+import mikrotiklogindetails
+
+if sys.argv[2] == 'up':
+    if interface == mikrotiklogindetails.interface:
+        # check what IP and ssid we have
+        # try and autologin to Mikrotik network
+        ssid = get_ssid()
+        ssids = ['something', 'next']
+        if ssid in ssids:
+            gw = get_gateway()
+            salt1, salt2 = get_mikrotik_salt(gw)
+            salted_pw = salt_password(salt1, salt2, mikrotik_password)
+            post_login_form(gw, mikrotik_username, salted_pw)

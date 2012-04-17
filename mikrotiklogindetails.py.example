@@ -1,0 +1,8 @@
+
+
+# the username and password to logon to the Mikrotik network
+mikrotik_username = 'myusername'
+mikrotik_password = 'mypassword'
+
+# the network SSID (or ESSID) - ie the network name
+mikrotik_ssid = ['myssid']
