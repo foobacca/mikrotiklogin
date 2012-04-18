@@ -27,7 +27,7 @@ def get_mikrotik_salt(gateway):
     # get form and extract password salt
     response = urllib2.urlopen('http://' + gateway + '/login')
     html_lines = response.read().split('\n')
-    salt_lines = filter((lambda x: 'hexMD5' in x), html_lines)[0]
+    salt_lines = filter((lambda x: 'hexMD5' in x), html_lines)
     if len(salt_lines) == 0:
         sys.exit("Could not find salt in login page")
     salt_line = salt_lines[0]
