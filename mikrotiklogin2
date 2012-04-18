@@ -8,7 +8,7 @@ import sys
 import hashlib
 import re
 import subprocess
-import urllib2
+import urllib, urllib2
 
 def get_ssid():
     ssidpat = re.compile('ESSID:"([^"]*)"')
@@ -27,7 +27,10 @@ def get_mikrotik_salt(gateway):
     # get form and extract password salt
     response = urllib2.urlopen('http://' + gateway + '/login')
     html_lines = response.read().split('\n')
-    salt_line = filter((lambda x: 'hexMD5' in x), html_lines)[0]
+    salt_lines = filter((lambda x: 'hexMD5' in x), html_lines)[0]
+    if len(salt_lines) == 0:
+        sys.exit("Could not find salt in login page")
+    salt_line = salt_lines[0]
     salt_bits = salt_line.split("'")
     salt1 = ''.join(map(lambda x: chr(int(x,8)), salt_bits[1].split('\\')[1:]))
     salt2 = ''.join(map(lambda x: chr(int(x,8)), salt_bits[3].split('\\')[1:]))
@@ -38,10 +41,10 @@ def salt_password(salt1, salt2, password):
     return hashlib.md5(s1pws2).hexdigest()
 
 def post_login_form(gateway, user, salt_password):
-    post_data = urllib2.urlencode({'username': user, 'password': salt_password})
+    post_data = urllib.urlencode({'username': user, 'password': salt_password})
     response = urllib2.urlopen('http://' + gateway + '/login', post_data)
-    response_lines = response.split('\n')
-    salt_line = filter((lambda x: 'FF8080' in x), response_lines)
+    html_lines = response.read().split('\n')
+    salt_line = filter((lambda x: 'FF8080' in x), html_lines)
     if salt_line:
         print salt_line
 
