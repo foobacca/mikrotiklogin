@@ -55,6 +55,8 @@ if len(sys.argv) < 2:
 # Fake ifupdown environment
 interface = sys.argv[1]
 
+# extend sys.path to include /etc/mikrotik/
+sys.path.append('/etc/mikrotik')
 from mikrotiklogindetails import mikrotik_ssids, mikrotik_username, mikrotik_password, mikrotik_interface
 
 if sys.argv[2] == 'up' and interface == mikrotik_interface:
